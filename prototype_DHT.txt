@@ -1,0 +1,104 @@
+Prototype d’objet connecté avec Sigfox
+
+    Le Mar 26 mai 2015
+    Dans Nouvelles technos à Amiens
+
+Depuis quelques mois Awelty s’intéresse beaucoup aux objets connectés. Comment connecter le réel au virtuel ? Comment exploiter les technologies Internet dans notre quotidien, dans celui des entreprises et des industries ?
+
+Pour les besoins d’un futur projet de monitoring de machines industrielles, nous souhaitons explorer plusieurs solutions techniques. Nous proposons ici la réalisation d'un prototype de mini station météo en utilisant le réseau Sigfox.
+
+Ces solutions doivent couvrir les impératifs suivants :
+
+    Bas débit : seuls quelques paramètres chiffrés seront collectés.
+    Emission seulement : les paramètres vitaux des machines doivent être collectés à intervalle fixe.
+    Fonctionnement en mobilité : les machines se déplacent, exit donc les solutions ethernet, Wifi ou bluetooth.
+    Fonctionnement en conditions industrielles : chaud, froid ou humidité ne devront pas altérer le fonctionnement de la solution.
+    Coût : il s’agit de monitorer jusqu’à plusieurs milliers de machines, les coûts initiaux (matériel) et de fonctionnement (abonnements) doivent être maîtrisés.
+    Autonomie : le système doit être alimenté par la machine à surveiller, ou par une batterie de secours si la machine est hors tension.
+
+Fonctionnalités du prototype
+
+Pour notre essai, nous simulerons une mini station météo en collectant la température, le taux d’humidité et la luminosité ambiants. Ces trois valeurs seront envoyées sur le réseau à intervalle régulier. En situation réelle, les informations à transmettre seront fournies par la machine hôte.
+La technologie Sigfox
+
+Le premier prototype présenté répond à la majorité de ces impératifs. Il s’agit d’une solution à base d’arduino exploitant le réseau SIGFOX.
+
+SIGFOX est un des leaders français de la communication m2m (Machine To Machine). Il s’agit d’un réseau cellulaire bas débit, qui couvre une grande majorité du territoire français et de nombreux pays européens. C’est un peu l’inverse de la 4G, des débits ridicules, une bande passante ultra restreinte, mais un coût de revient imbattable. En outre, les solutions Sigfox présentent l’avantage de consommer peu d’énergie (grâce à la bande de fréquences utilisée). 
+
+Pour exploiter ce réseau, il suffit d’un modem compatible SIGFOX, qui une fois correctement exploité, enverra les données sur le réseau. Ces données sont ensuite mises à disposition sur le web, et exploitables par votre application.
+
+Le réseau sigfox autorise l’envoi de 140 messages de 12 octets par jour et par modem.
+Le microcontrôleur
+
+Olimex olimexino 328
+
+Nous avons choisi une carte Olimexino 328, produite par Olimex, qui présente tous les avantages d’un petit arduino, avec en bonus :
+
+    Une alimentation permissive de 9 à 30V, ou via USB 5V
+    Un circuit de charge intégré qui permet à la carte de tourner sur batterie (li-Po ou Li-Ion) en l’absence d’alimentation
+    Un design “industriel”, qui promet une plage de fonctionnement de -25 à +85°C, et une bonne immunité aux interférences
+    La capacité de fonctionner en 5V ou 3.3V
+
+Le modem
+
+Snootlab akene sigfox
+
+La couche “communication” est assurée par la carte Akene de chez Snootlab. Cette carte au format arduino embarque un modem Sigfox et en facilite l’utilisation.
+
+    Fonctionne sous 5V et 3.3V
+    Propose un espace de prototypage avec des rails GND, 3.3 et 5V
+    Est livrée avec une antenne
+    Est livrée avec un an d’abonnement sigfox et un accès à l’interface actoboard.net
+
+L'alimentation
+
+Batterie lipo 4400mah
+
+Une batterie Lipo de 4400 mAh assurera l’autonomie du système lorsque la machine sera hors tension (transport, panne électrique, stockage). Avec une consommation estimée à 200 mA (à vue de nez), on peut espérer une autonomie d’une vingtaine d’heures sur batterie.
+
+Le cycle de mise sous tension de la machine hôte sera simulé par un panneau solaire bon marché, qui fournira une alimentation 5V instable et une charge discontinue de la batterie.
+Les capteurs
+
+Capteur dht11 bh1750
+
+Les capteurs utilisés sont des articles chinois bon marché, qu’on trouve dans tous les kits de découverte arduino, dans toutes les boutiques en ligne, ou sur ebay. N’en attendez pas une fiabilité exemplaire, il faut les considérer comme des outils pédagogiques. Nous allons donc exploiter :
+
+    Un capteur DHT11 qui fournit la température et le taux d’humidité via un protocole série maison.
+    Un capteur de luminosité BH1750, exploitable via I2C.
+
+Câblage
+
+Cablage du prototype
+
+Le shield Akene s’enfiche parfaitement sur la carte Olimexino-328. Deux broches restent dans le vide sur cette carte, mais pas d’inquiétude.
+
+La batterie se connecte à la carte mère via la prise JST dédiée.
+
+Le sélecteur de tension doit être positionné sur 3.3V (ce qui permettra au système de fonctionner sur batterie)
+
+Le capteur DHT11 doit être connecté comme suit :
+
+    broche “-” => GND
+    broche “+” => 3.3V
+    broche “OUT” => D2
+
+Le capteur BH1750 soit être connecté comme suit :
+
+    broche GND => GND
+    broche VCC => 3.3V
+    broche SDA => A4
+    broche SCL => A5
+
+Une fois le code envoyé sur la carte, vous pourrez alimenter la carte par un panneau solaire via la prise USB. Nous avons choisi de ranger le tout dans une boite en plastique pour laisser tourner notre station en extérieur. Pensez à percer votre boîtier pour limiter la condensation et capter l'humidité ambiante.
+
+Le prototype dans son boitier
+Librairies Arduino
+
+Vous devez télecharger et installer ces librairies dans votre environnement arduino :
+
+La librairie Akene fournie par snootlab lors de l’achat de la carte. Elle propose une interface d’utilisation simple pour les fonctions de base du modem : initialisation, envoi de données.
+
+La librairie DHT d’adafruit, disponible sur github. Elle permet d’exploiter facilement les capteurs DHT11 et DHT22 (ce dernier est plus précis).
+Télécharger la librairie : https://github.com/adafruit/DHT-sensor-library
+
+La librairie BH1750 de claws, disponible sur github. Elle permet d’exploiter le capteur de luminosité BH1750.
